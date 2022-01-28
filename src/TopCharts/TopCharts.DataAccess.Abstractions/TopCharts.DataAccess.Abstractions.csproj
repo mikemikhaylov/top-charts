@@ -4,4 +4,12 @@
         <TargetFramework>net5.0</TargetFramework>
     </PropertyGroup>
 
+    <ItemGroup>
+      <Folder Include="Dto" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\TopCharts.Domain.Model\TopCharts.Domain.Model.csproj" />
+    </ItemGroup>
+
 </Project>
