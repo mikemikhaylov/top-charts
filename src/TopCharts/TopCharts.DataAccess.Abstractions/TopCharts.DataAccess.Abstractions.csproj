@@ -5,10 +5,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Folder Include="Dto" />
-    </ItemGroup>
-
-    <ItemGroup>
       <ProjectReference Include="..\TopCharts.Domain.Model\TopCharts.Domain.Model.csproj" />
     </ItemGroup>
 

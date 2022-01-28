@@ -20,6 +20,8 @@
 
     <ItemGroup>
       <ProjectReference Include="..\TopCharts.DataAccess.Api\TopCharts.DataAccess.Api.csproj" />
+      <ProjectReference Include="..\TopCharts.DataAccess.Db\TopCharts.DataAccess.Db.csproj" />
+      <ProjectReference Include="..\TopCharts.Domain.Services\TopCharts.Domain.Services.csproj" />
     </ItemGroup>
 
     <ItemGroup>

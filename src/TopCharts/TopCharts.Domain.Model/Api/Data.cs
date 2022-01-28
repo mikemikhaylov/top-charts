@@ -12,5 +12,7 @@ namespace TopCharts.Domain.Model.Api
         public Counters Counters { get; set; }
         public int HitsCount { get; set; }
         public Likes Likes { get; set; }
+        public Block[] Blocks { get; set; }
+        public string Title { get; set; }
     }
 }
