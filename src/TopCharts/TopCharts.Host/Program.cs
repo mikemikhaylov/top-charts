@@ -44,6 +44,7 @@ namespace TopCharts.Host
             services.AddSingleton(config.GetSection("Db").Get<DbOptions>());
             services.AddSingleton<MongoDbContext>();
             services.AddSingleton<DigestBuilder>();
+            services.AddSingleton<DataLoader>();
             services
                 .AddSingleton<IApiRequester, ApiRequester>();
             services
