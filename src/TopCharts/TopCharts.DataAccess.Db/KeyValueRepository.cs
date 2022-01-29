@@ -8,6 +8,9 @@ namespace TopCharts.DataAccess.Db
 {
     public class KeyValueRepository: MongoDbRepositoryBase<KeyValue>, IKeyValueRepository
     {
+        public KeyValueRepository(MongoDbContext mongoDbContext) : base(mongoDbContext)
+        {
+        }
         public async Task<string> GetAsync(Site site, string key, CancellationToken cancellationToken)
         {
             return (await MongoDbContext.KeyValues
@@ -24,7 +27,7 @@ namespace TopCharts.DataAccess.Db
             }, new ReplaceOptions { IsUpsert = true }, cancellationToken);
         }
 
-        protected KeyValueRepository(MongoDbContext mongoDbContext) : base(mongoDbContext)
+        protected override void InitAction(MongoDbContext mongoDbContext)
         {
             var options = new CreateIndexOptions<KeyValue>
             {

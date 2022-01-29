@@ -14,5 +14,10 @@ namespace TopCharts.Domain.Model.Api
         public Likes Likes { get; set; }
         public Block[] Blocks { get; set; }
         public string Title { get; set; }
+
+        public DateTime GetCreatedAt()
+        {
+            return DateTimeOffset.FromUnixTimeSeconds(this.Date).DateTime;
+        }
     }
 }

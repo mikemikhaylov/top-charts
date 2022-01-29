@@ -33,14 +33,17 @@ namespace TopCharts.Host
             var builder = new ConfigurationBuilder()
                 .AddJsonFile($"appsettings.json", true, true)
                 .AddJsonFile($"appsettings.{env}.json", true, true)
-                .AddUserSecrets(Assembly.GetEntryAssembly());
+                .AddUserSecrets(Assembly.GetEntryAssembly(), true, true);
 
             var config = builder.Build();
             
             services.AddHttpClient<ApiRequester>().AddTransientHttpErrorPolicy(p => 
                 p.WaitAndRetryAsync(6, retry => TimeSpan.FromMilliseconds(10000 * retry)));;
             services.AddSingleton(config.GetSection("VcApi").Get<ApiRequesterOptions>());
+            services.AddSingleton(config.GetSection("VcPosting").Get<PostingOptions>());
             services.AddSingleton(config.GetSection("Db").Get<DbOptions>());
+            services.AddSingleton<MongoDbContext>();
+            services.AddSingleton<DigestBuilder>();
             services
                 .AddSingleton<IApiRequester, ApiRequester>();
             services
