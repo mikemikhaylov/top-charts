@@ -47,6 +47,7 @@ namespace TopCharts.Host
             services.AddSingleton<DigestBuilder>();
             services.AddSingleton<DataLoader>();
             services.AddSingleton<TelegraphApi>();
+            services.AddSingleton<DigestPoster>();
             services
                 .AddSingleton<IApiRequester, ApiRequester>();
             services

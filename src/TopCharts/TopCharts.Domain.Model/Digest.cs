@@ -4,6 +4,7 @@ namespace TopCharts.Domain.Model
 {
     public class Digest
     {
+        public string Name { get; set; }
         public SubSiteType SubSiteType { get; set; }
         public int TopSize { get; set; }
         public Item[] ByLikes { get; set; }

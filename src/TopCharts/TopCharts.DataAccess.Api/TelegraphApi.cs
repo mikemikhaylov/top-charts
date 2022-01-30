@@ -53,14 +53,15 @@ namespace TopCharts.DataAccess.Api
             return page.Url;
         }
 
-        public async Task<string> EditPageAsync(string url, string title, List<Node> nodes, CancellationToken cancellationToken)
+        public async Task<string> EditPageAsync(string url, List<Node> nodes, CancellationToken cancellationToken)
         {
-            var page = await _telegraphClient.EditPage(
+            var page = await _telegraphClient.GetPage(url);
+            page = await _telegraphClient.EditPage(
                 url,
-                title, 
+                page.Title, 
                 nodes, 
-                AuthorName,
-                AuthorUrl
+                page.AuthorName,
+                page.AuthorUrl
             );
             return page.Url;
         }

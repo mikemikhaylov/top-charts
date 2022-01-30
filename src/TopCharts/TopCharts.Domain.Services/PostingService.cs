@@ -16,32 +16,25 @@ namespace TopCharts.Domain.Services
     {
         private readonly IKeyValueRepository _keyValueRepository;
         private readonly IItemRepository _itemRepository;
-        private readonly IApiRequester _apiRequester;
-        private readonly DigestBuilder _digestBuilder;
         private readonly DataLoader _dataLoader;
-        private readonly TelegraphApi _telegraphApi;
+        private readonly DigestPoster _digestPoster;
 
         private readonly PostingOptions _config;
 
         public PostingService(PostingOptions config, IKeyValueRepository keyValueRepository,
-            IItemRepository itemRepository, IApiRequester apiRequester, DigestBuilder digestBuilder,
-            DataLoader dataLoader, TelegraphApi telegraphApi)
+            IItemRepository itemRepository, 
+            DataLoader dataLoader, DigestPoster digestPoster)
         {
             _config = config;
             _keyValueRepository = keyValueRepository;
             _itemRepository = itemRepository;
-            _apiRequester = apiRequester;
-            _digestBuilder = digestBuilder;
             _dataLoader = dataLoader;
-            _telegraphApi = telegraphApi;
+            _digestPoster = digestPoster;
         }
 
         public async Task ProcessAsync(CancellationToken cancellationToken)
         {
-            var url = await _telegraphApi.CreatePageAsync("For future use", cancellationToken);
-            var url2 = await _telegraphApi.EditPageAsync(url, "Title2", new List<Node>(){
-                Node.P("Hello, World!222"),
-            }, cancellationToken);
+            await _digestPoster.PostWeek(DateTime.Now.AddDays(1), cancellationToken);
             return;
 
             if (_config.Type == PostingType.InitialDownload)

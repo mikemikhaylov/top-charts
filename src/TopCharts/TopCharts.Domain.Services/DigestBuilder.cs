@@ -82,7 +82,21 @@ namespace TopCharts.Domain.Services
             digest.TotalReposts = items.Select(x=> x.Data.Counters.Reposts).Sum();
             digest.TotalViews = items.Select(x=> x.Data.HitsCount).Sum();
             digest.TotalBookmarks = items.Select(x=> x.Data.Counters.Favorites).Sum();
+            digest.Name = GetSubSiteName(digest);
             return digest;
+        }
+        
+        private static string GetSubSiteName(Digest digest)
+        {
+            if (digest.SubSiteType == SubSiteType.All)
+            {
+                return "Весь сайт";
+            }
+            if (digest.SubSiteType == SubSiteType.Other)
+            {
+                return "Остальные подсайты";
+            }
+            return digest.ByLikes.First().Data.SubSite.Name;
         }
     }
 }
