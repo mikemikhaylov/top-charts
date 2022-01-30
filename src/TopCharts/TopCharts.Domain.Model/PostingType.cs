@@ -1,4 +1,4 @@
-namespace TopCharts.Domain.Services
+namespace TopCharts.Domain.Model
 {
     public enum PostingType
     {

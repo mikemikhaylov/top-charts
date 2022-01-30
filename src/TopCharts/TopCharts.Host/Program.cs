@@ -8,6 +8,7 @@ using Polly;
 using TopCharts.DataAccess.Abstractions;
 using TopCharts.DataAccess.Api;
 using TopCharts.DataAccess.Db;
+using TopCharts.Domain.Model;
 using TopCharts.Domain.Services;
 
 namespace TopCharts.Host
@@ -45,6 +46,7 @@ namespace TopCharts.Host
             services.AddSingleton<MongoDbContext>();
             services.AddSingleton<DigestBuilder>();
             services.AddSingleton<DataLoader>();
+            services.AddSingleton<TelegraphApi>();
             services
                 .AddSingleton<IApiRequester, ApiRequester>();
             services

@@ -1,12 +1,12 @@
 using System;
-using TopCharts.Domain.Model;
 
-namespace TopCharts.Domain.Services
+namespace TopCharts.Domain.Model
 {
     public class PostingOptions
     {
         public PostingType Type { get; set; }
         public DateTime InitialDate { get; set; }
         public Site Site { get; set; }
+        public string TelegraphToken { get; set; }
     }
 }
