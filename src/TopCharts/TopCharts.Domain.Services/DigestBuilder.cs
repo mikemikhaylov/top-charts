@@ -77,6 +77,11 @@ namespace TopCharts.Domain.Services
                     .ThenByDescending(x => x.Data.Counters.Comments).ThenByDescending(x => x.Data.Counters.Favorites)
                     .ThenByDescending(x => x.Data.GetCreatedAt()).Take(topCount).ToArray(),
             };
+            digest.TotalComments = items.Select(x=> x.Data.Counters.Comments).Sum();
+            digest.TotalLikes = items.Select(x=> x.Data.Likes.Summ).Sum();
+            digest.TotalReposts = items.Select(x=> x.Data.Counters.Reposts).Sum();
+            digest.TotalViews = items.Select(x=> x.Data.HitsCount).Sum();
+            digest.TotalBookmarks = items.Select(x=> x.Data.Counters.Favorites).Sum();
             return digest;
         }
     }

@@ -29,8 +29,9 @@ namespace TopCharts.Domain.Services
         }
         public async Task ProcessAsync(CancellationToken cancellationToken)
         {
-            var digests = await _digestBuilder.BuildAsync(_config.Site, DateTime.Now.AddDays(-1),DateTime.Now,
+            var digests = await _digestBuilder.BuildAsync(_config.Site, DateTime.Now.AddDays(-700),DateTime.Now,
                 cancellationToken);
+            var top = digests.OrderByDescending(x => x.TotalViews).ToList();
             return;
             
             if (_config.Type == PostingType.InitialDownload)
