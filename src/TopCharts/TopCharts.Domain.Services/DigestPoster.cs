@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
@@ -18,6 +19,7 @@ namespace TopCharts.Domain.Services
         private readonly PostingOptions _postingOptions;
         private readonly DigestBuilder _digestBuilder;
         private readonly TelegraphApi _telegraphApi;
+        public static readonly CultureInfo Russian = new CultureInfo("ru-RU");
 
         public DigestPoster(PostingOptions postingOptions, DigestBuilder digestBuilder, TelegraphApi telegraphApi)
         {
@@ -34,14 +36,15 @@ namespace TopCharts.Domain.Services
         public async Task PostWeek(DateTime dateTime, CancellationToken cancellationToken)
         {
             var from = StartOfWeek(dateTime.AddDays(-7), DayOfWeek.Monday);
-            var to = from.AddDays(7);
-            await PostPeriod("Лучшие статьи недели", "17 – 23 января", from, to, cancellationToken);
+            var to = from.AddDays(6);
+            await PostPeriod("Лучшие статьи недели", $"{from.ToString("d", Russian)} – {to.ToString("d", Russian)}", from, to.AddDays(1), cancellationToken);
         }
 
         public async Task PostMonth(DateTime dateTime, CancellationToken cancellationToken)
         {
             var firstDayOfMonth = new DateTime(dateTime.Year, dateTime.Month, 1);
-            await PostPeriod("Лучшие статьи за", "январь 2022", firstDayOfMonth.AddMonths(-1), firstDayOfMonth,
+            var from = firstDayOfMonth.AddMonths(-1);
+            await PostPeriod("Лучшие статьи за", $"{from.ToString("MMMM", Russian)} {from.Year}", from, firstDayOfMonth,
                 cancellationToken);
         }
 

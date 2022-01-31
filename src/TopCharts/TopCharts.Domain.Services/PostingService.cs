@@ -34,7 +34,7 @@ namespace TopCharts.Domain.Services
 
         public async Task ProcessAsync(CancellationToken cancellationToken)
         {
-            await _digestPoster.PostWeek(DateTime.Now.AddDays(1), cancellationToken);
+            await _digestPoster.PostWeek(DateTime.Now, cancellationToken);
             return;
 
             if (_config.Type == PostingType.InitialDownload)
