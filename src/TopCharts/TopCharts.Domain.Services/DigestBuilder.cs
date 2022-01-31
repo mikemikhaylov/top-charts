@@ -12,7 +12,7 @@ namespace TopCharts.Domain.Services
     public class DigestBuilder
     {
         private static readonly int TopAllCount = 30;
-        private static readonly int TopSubSiteCount = 30;
+        private static readonly int TopSubSiteCount = 15;
         private static readonly HashSet<SubSiteType> SubSiteTypes = Enum.GetValues<SubSiteType>().Where(x=> x != SubSiteType.All && x != SubSiteType.Other).ToHashSet();
 
         private readonly IItemRepository _itemRepository;

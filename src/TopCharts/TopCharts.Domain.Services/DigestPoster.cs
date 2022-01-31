@@ -87,7 +87,7 @@ namespace TopCharts.Domain.Services
                         ByBookmarks = await _telegraphApi.CreatePageAsync(
                             $"ТОП-{digest.TopSize} {digest.Name} — {period} — по закладкам", cancellationToken),
                         ByLikes = await _telegraphApi.CreatePageAsync(
-                            $"ТОП-{digest.TopSize} {digest.Name} — {period} — по лайкам", cancellationToken),
+                            $"ТОП-{digest.TopSize} {digest.Name} — {period} — по рейтингу", cancellationToken),
                         ByComments = await _telegraphApi.CreatePageAsync(
                             $"ТОП-{digest.TopSize} {digest.Name} — {period} — по комментариям", cancellationToken),
                         ByViews = await _telegraphApi.CreatePageAsync(
@@ -179,7 +179,7 @@ namespace TopCharts.Domain.Services
         {
             var nodes = new List<Node>();
             nodes.Add(Node.P(Node.A(mainLink, "Главная")));
-            nodes.Add(Node.P("По ", Node.A(digestLinks.ByLikes, "лайкам"), " | ",
+            nodes.Add(Node.P("По ", Node.A(digestLinks.ByLikes, "рейтингу"), " | ",
                 Node.A(digestLinks.ByViews, "просмотрам"),
                 " | ", Node.A(digestLinks.ByBookmarks, "закладкам"), " | ",
                 Node.A(digestLinks.ByComments, "комментариям")));
