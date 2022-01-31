@@ -190,9 +190,15 @@ namespace TopCharts.Domain.Services
                     ? data?.Text
                     : data.TextTruncated;
                 description = TruncateText(CleanText(description), 150);
+                var linkText = TruncateText(x.Data.Title, 150);
+                var linkHref = $"https://vc.ru/{x.Data.Id}";
+                if (string.IsNullOrWhiteSpace(linkText))
+                {
+                    linkText = linkHref;
+                }
                 var liContent = new List<Node>
                 {
-                    Node.A($"https://vc.ru/{x.Data.Id}", TruncateText(x.Data.Title, 150)),
+                    Node.A(linkHref, linkText),
                 };
                 if (!string.IsNullOrWhiteSpace(description))
                 {
