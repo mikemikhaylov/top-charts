@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
@@ -19,9 +20,11 @@ namespace TopCharts.Domain.Services
         private readonly PostingOptions _postingOptions;
         private readonly DigestBuilder _digestBuilder;
         private readonly TelegraphApi _telegraphApi;
-        public static readonly CultureInfo Russian = new CultureInfo("ru-RU");
+        private readonly TelegramPoster _telegramPoster;
+        private static readonly CultureInfo Russian = new CultureInfo("ru-RU");
 
-        public DigestPoster(PostingOptions postingOptions, DigestBuilder digestBuilder, TelegraphApi telegraphApi)
+        public DigestPoster(PostingOptions postingOptions, DigestBuilder digestBuilder, TelegraphApi telegraphApi,
+            TelegramPoster telegramPoster)
         {
             _postingOptions = postingOptions;
             if (_postingOptions.Site != Site.Vc)
@@ -31,13 +34,15 @@ namespace TopCharts.Domain.Services
 
             _digestBuilder = digestBuilder;
             _telegraphApi = telegraphApi;
+            _telegramPoster = telegramPoster;
         }
 
         public async Task PostWeek(DateTime dateTime, CancellationToken cancellationToken)
         {
             var from = StartOfWeek(dateTime.AddDays(-7), DayOfWeek.Monday);
             var to = from.AddDays(6);
-            await PostPeriod("Лучшие статьи недели", $"{from.ToString("d", Russian)} – {to.ToString("d", Russian)}", from, to.AddDays(1), cancellationToken);
+            await PostPeriod("Лучшие статьи недели", $"{from.ToString("d", Russian)} – {to.ToString("d", Russian)}",
+                from, to.AddDays(1), cancellationToken);
         }
 
         public async Task PostMonth(DateTime dateTime, CancellationToken cancellationToken)
@@ -69,18 +74,56 @@ namespace TopCharts.Domain.Services
                 linksByDigest[digest.SubSiteType] = links;
             }
 
-            var mailLink =
+            var mainLink =
                 await _telegraphApi.CreatePageAsync($"{title} {period}",
                     cancellationToken);
-            await EditMainLink(mailLink, digests, linksByDigest, cancellationToken);
-            foreach (var digest in digests)
+            // await EditMainLink(mailLink, digests, linksByDigest, cancellationToken);
+            // foreach (var digest in digests)
+            // {
+            //     var links = linksByDigest[digest.SubSiteType];
+            //     await EditDigestLink(links.ByLikes, mailLink, links, digest.ByLikes, cancellationToken);
+            //     await EditDigestLink(links.ByBookmarks, mailLink, links, digest.ByBookmarks, cancellationToken);
+            //     await EditDigestLink(links.ByComments, mailLink, links, digest.ByComments, cancellationToken);
+            //     await EditDigestLink(links.ByViews, mailLink, links, digest.ByViews, cancellationToken);
+            // }
+
+            var telegramContent = $"*{EscapeMarkup($"{title} {period}")}*";
+            var allSite = digests.First(x => x.SubSiteType == SubSiteType.All);
+            telegramContent +=
+                $"\n\n🌍*[{EscapeMarkup(allSite.Name)}]({EscapeMarkup(linksByDigest[allSite.SubSiteType].ByLikes)})*";
+            var tribunaSite = digests.FirstOrDefault(x => x.SubSiteType == SubSiteType.Tribuna);
+            if (tribunaSite != null)
             {
-                var links = linksByDigest[digest.SubSiteType];
-                await EditDigestLink(links.ByLikes, mailLink, links, digest.ByLikes, cancellationToken);
-                await EditDigestLink(links.ByBookmarks, mailLink, links, digest.ByBookmarks, cancellationToken);
-                await EditDigestLink(links.ByComments, mailLink, links, digest.ByComments, cancellationToken);
-                await EditDigestLink(links.ByViews, mailLink, links, digest.ByViews, cancellationToken);
+                telegramContent +=
+                    $"\n\n🔥*[{EscapeMarkup(tribunaSite.Name)}]({EscapeMarkup(linksByDigest[tribunaSite.SubSiteType].ByLikes)})* {EscapeMarkup("(поддержим тех, кто запускает новые продукты)")}";
             }
+
+            const int podsitesTopCount = 10;
+            telegramContent += $"\n\n__{EscapeMarkup($"ТОП-{podsitesTopCount} самых читаемых подсайтов")}__\n";
+            int i = 1;
+            foreach (var digest in digests
+                         .Where(x => x.SubSiteType != SubSiteType.All && x.SubSiteType != SubSiteType.Other)
+                         .OrderByDescending(x => x.TotalViews).Take(podsitesTopCount))
+            {
+                telegramContent +=
+                    $"\n[{EscapeMarkup($"{i++}. {digest.Name}")}]({EscapeMarkup(linksByDigest[digest.SubSiteType].ByLikes)})";
+            }
+            telegramContent +=
+                $"\n\n*[{EscapeMarkup("Полный список подсайтов")}]({EscapeMarkup(mainLink)})*";
+            await _telegramPoster.Post(telegramContent, cancellationToken);
+        }
+
+        private string EscapeMarkup(string text)
+        {
+            return text.Replace("\\", "\\\\")
+                .Replace("-", "\\-")
+                .Replace("*", "\\*")
+                .Replace("(", "\\(")
+                .Replace(")", "\\)")
+                .Replace(".", "\\.")
+                .Replace("|", "\\|")
+                .Replace("[", "\\[")
+                .Replace("]", "\\]");
         }
 
         private async Task EditDigestLink(string url, string mainLink, DigestLinks digestLinks, Item[] items,
@@ -107,8 +150,9 @@ namespace TopCharts.Domain.Services
                 {
                     liContent.Add("\n\n" + description);
                 }
+
                 liContent.Add(
-                        $"\n\n👍 {x.Data.Likes.Summ} | 👁 {x.Data.HitsCount} | 🔖 {x.Data.Counters.Favorites} | 💬 {x.Data.Counters.Comments}\n");
+                    $"\n\n👍 {x.Data.Likes.Summ} | 👁 {x.Data.HitsCount} | 🔖 {x.Data.Counters.Favorites} | 💬 {x.Data.Counters.Comments}\n");
                 return Node.Li(liContent);
             })));
             await _telegraphApi.EditPageAsync(url, nodes, cancellationToken);
@@ -141,6 +185,7 @@ namespace TopCharts.Domain.Services
             {
                 text = text.Substring(0, size) + "...";
             }
+
             return text;
         }
 
@@ -150,9 +195,10 @@ namespace TopCharts.Domain.Services
             {
                 return text;
             }
+
             var htmlDoc = new HtmlDocument();
             htmlDoc.LoadHtml(Markdown.ToHtml(text));
-            text =  htmlDoc.DocumentNode.InnerText;
+            text = htmlDoc.DocumentNode.InnerText;
             if (text is {Length: > 1} && text[^1] == '\n')
             {
                 text = text.Remove(text.Length - 1);

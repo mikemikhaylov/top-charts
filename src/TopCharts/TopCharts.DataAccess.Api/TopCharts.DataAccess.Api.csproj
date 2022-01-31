@@ -12,6 +12,7 @@
       <PackageReference Include="Kvyk.Telegraph" Version="1.1.0" />
       <PackageReference Include="Microsoft.Net.Http.Headers" Version="2.2.8" />
       <PackageReference Include="System.Net.Http.Json" Version="6.0.0" />
+      <PackageReference Include="Telegram.Bot" Version="17.0.0" />
     </ItemGroup>
 
 </Project>

@@ -8,5 +8,7 @@ namespace TopCharts.Domain.Model
         public DateTime InitialDate { get; set; }
         public Site Site { get; set; }
         public string TelegraphToken { get; set; }
+        public string BotToken { get; set; }
+        public long ChannelId { get; set; }
     }
 }
