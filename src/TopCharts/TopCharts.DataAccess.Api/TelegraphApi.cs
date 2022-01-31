@@ -56,7 +56,7 @@ namespace TopCharts.DataAccess.Api
             return page.Url;
         }
 
-        public async Task<string> EditPageAsync(string url, List<Node> nodes, CancellationToken cancellationToken)
+        public async Task EditPageAsync(string url, List<Node> nodes, CancellationToken cancellationToken)
         {
             Console.WriteLine("Editing page: " + url);
             await Task.Delay(GetTimeout(), cancellationToken);
@@ -68,7 +68,6 @@ namespace TopCharts.DataAccess.Api
                 page.AuthorName,
                 page.AuthorUrl
             );
-            return page.Url;
         }
 
         private static Random rnd = new Random();

@@ -24,7 +24,6 @@ namespace TopCharts.Domain.Services
         private readonly TelegramPoster _telegramPoster;
         private readonly IKeyValueRepository _keyValueRepository;
         private static readonly CultureInfo Russian = new CultureInfo("ru-RU");
-
         public DigestPoster(PostingOptions postingOptions, DigestBuilder digestBuilder, TelegraphApi telegraphApi,
             TelegramPoster telegramPoster, IKeyValueRepository keyValueRepository)
         {
@@ -40,9 +39,22 @@ namespace TopCharts.Domain.Services
             _keyValueRepository = keyValueRepository;
         }
 
+        public DateTime GetPrevWeekBeginning(DateTime dt)
+        {
+            dt = dt.AddDays(-7);
+            int diff = (7 + (dt.DayOfWeek - DayOfWeek.Monday)) % 7;
+            return dt.AddDays(-1 * diff).Date;
+        }
+        
+        public DateTime GetPrevMonthBeginning(DateTime dt)
+        {
+            var firstDayOfMonth = new DateTime(dt.Year, dt.Month, 1);
+            return firstDayOfMonth.AddMonths(-1);
+        }
+        
         public async Task PostWeek(DateTime dateTime, CancellationToken cancellationToken)
         {
-            var from = StartOfWeek(dateTime.AddDays(-7), DayOfWeek.Monday);
+            var from = GetPrevWeekBeginning(dateTime);
             var to = from.AddDays(6);
             await PostPeriod("Лучшие статьи недели", $"{from.ToString("d", Russian)} – {to.ToString("d", Russian)}",
                 from, to.AddDays(1), cancellationToken);
@@ -50,9 +62,8 @@ namespace TopCharts.Domain.Services
 
         public async Task PostMonth(DateTime dateTime, CancellationToken cancellationToken)
         {
-            var firstDayOfMonth = new DateTime(dateTime.Year, dateTime.Month, 1);
-            var from = firstDayOfMonth.AddMonths(-1);
-            await PostPeriod("Лучшие статьи за", $"{from.ToString("MMMM", Russian)} {from.Year}", from, firstDayOfMonth,
+            var from = GetPrevMonthBeginning(dateTime);
+            await PostPeriod("Лучшие статьи за", $"{from.ToString("MMMM", Russian)} {from.Year}", from, from.AddMonths(1),
                 cancellationToken);
         }
 
@@ -60,6 +71,11 @@ namespace TopCharts.Domain.Services
             CancellationToken cancellationToken)
         {
             var digests = await _digestBuilder.BuildAsync(_postingOptions.Site, from, to, cancellationToken);
+            if (digests.Length == 0)
+            {
+                Console.WriteLine($"Period {from} {to} is empty");
+                return;
+            }
             var linksByDigest = new Dictionary<SubSiteType, DigestLinks>();
             foreach (var digest in digests)
             {
@@ -237,12 +253,6 @@ namespace TopCharts.Domain.Services
             }
 
             return text;
-        }
-
-        private static DateTime StartOfWeek(DateTime dt, DayOfWeek startOfWeek)
-        {
-            int diff = (7 + (dt.DayOfWeek - startOfWeek)) % 7;
-            return dt.AddDays(-1 * diff).Date;
         }
 
         private class DigestLinks
