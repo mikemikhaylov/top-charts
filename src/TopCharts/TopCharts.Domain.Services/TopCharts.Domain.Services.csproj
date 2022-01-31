@@ -10,7 +10,9 @@
     </ItemGroup>
 
     <ItemGroup>
+      <PackageReference Include="HtmlAgilityPack" Version="1.11.40" />
       <PackageReference Include="Kvyk.Telegraph" Version="1.1.0" />
+      <PackageReference Include="Markdig" Version="0.27.0" />
     </ItemGroup>
 
 </Project>

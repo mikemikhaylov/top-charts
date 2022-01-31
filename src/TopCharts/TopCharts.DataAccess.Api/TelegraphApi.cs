@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Kvyk.Telegraph;
@@ -39,6 +40,7 @@ namespace TopCharts.DataAccess.Api
 
         public async Task<string> CreatePageAsync(string title, CancellationToken cancellationToken)
         {
+            Console.WriteLine("Creating page: " + title);
             return "https://telegra.ph/For-future-use-01-30-2";
             var nodes = new List<Node>
             {
@@ -55,6 +57,7 @@ namespace TopCharts.DataAccess.Api
 
         public async Task<string> EditPageAsync(string url, List<Node> nodes, CancellationToken cancellationToken)
         {
+            Console.WriteLine("Editing page: " + url);
             var page = await _telegraphClient.GetPage(url);
             page = await _telegraphClient.EditPage(
                 url,

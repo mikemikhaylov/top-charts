@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using HtmlAgilityPack;
 using Kvyk.Telegraph.Models;
+using Markdig;
 using TopCharts.DataAccess.Api;
 using TopCharts.Domain.Model;
 using TopCharts.Domain.Model.Api;
@@ -81,7 +84,30 @@ namespace TopCharts.Domain.Services
             CancellationToken cancellationToken)
         {
             var nodes = new List<Node>();
-            nodes.Add(Node.);
+            nodes.Add(Node.P(Node.A(mainLink, "Главная")));
+            nodes.Add(Node.P("По ", Node.A(digestLinks.ByLikes, "лайкам"), " | ",
+                Node.A(digestLinks.ByViews, "просмотрам"),
+                " | ", Node.A(digestLinks.ByBookmarks, "закладкам"), " | ",
+                Node.A(digestLinks.ByComments, "комментариям")));
+            nodes.Add(Node.Ol(items.Select(x =>
+            {
+                var data = x.Data.Blocks.FirstOrDefault()?.Data;
+                var description = data?.TextTruncated == null || data.TextTruncated == "<<<same>>>"
+                    ? data?.Text
+                    : data.TextTruncated;
+                description = TruncateText(CleanText(description), 150);
+                var liContent = new List<Node>
+                {
+                    Node.A($"https://vc.ru/{x.Data.Id}", TruncateText(x.Data.Title, 150)),
+                };
+                if (!string.IsNullOrWhiteSpace(description))
+                {
+                    liContent.Add("\n\n" + description);
+                }
+                liContent.Add(
+                        $"\n\n👍 {x.Data.Likes.Summ} | 👁 {x.Data.HitsCount} | 🔖 {x.Data.Counters.Favorites} | 💬 {x.Data.Counters.Comments}\n");
+                return Node.Li(liContent);
+            })));
             await _telegraphApi.EditPageAsync(url, nodes, cancellationToken);
         }
 
@@ -90,9 +116,7 @@ namespace TopCharts.Domain.Services
         {
             var nodes = new List<Node>();
             var allSite = digests.First(x => x.SubSiteType == SubSiteType.All);
-            nodes.Add(Node.A(linksByDigest[allSite.SubSiteType].ByLikes, allSite.Name));
-            nodes.Add(Node.Br());
-            nodes.Add(Node.Br());
+            nodes.Add(Node.P(Node.A(linksByDigest[allSite.SubSiteType].ByLikes, allSite.Name)));
             foreach (var digest in digests.OrderBy(x => x.Name))
             {
                 if (digest.SubSiteType is SubSiteType.All or SubSiteType.Other)
@@ -100,14 +124,38 @@ namespace TopCharts.Domain.Services
                     continue;
                 }
 
-                nodes.Add(Node.A(linksByDigest[digest.SubSiteType].ByLikes, digest.Name));
-                nodes.Add(Node.Br());
+                nodes.Add(Node.P(Node.A(linksByDigest[digest.SubSiteType].ByLikes, digest.Name)));
             }
 
-            nodes.Add(Node.Br());
             var otherSite = digests.First(x => x.SubSiteType == SubSiteType.Other);
-            nodes.Add(Node.A(linksByDigest[otherSite.SubSiteType].ByLikes, otherSite.Name));
+            nodes.Add(Node.P(Node.A(linksByDigest[otherSite.SubSiteType].ByLikes, otherSite.Name)));
             await _telegraphApi.EditPageAsync(url, nodes, cancellationToken);
+        }
+
+        private static string TruncateText(string text, int size)
+        {
+            if (!string.IsNullOrEmpty(text) && text.Length > size)
+            {
+                text = text.Substring(0, size) + "...";
+            }
+            return text;
+        }
+
+        private static string CleanText(string text)
+        {
+            if (text == null)
+            {
+                return text;
+            }
+            var htmlDoc = new HtmlDocument();
+            htmlDoc.LoadHtml(Markdown.ToHtml(text));
+            text =  htmlDoc.DocumentNode.InnerText;
+            if (text is {Length: > 1} && text[^1] == '\n')
+            {
+                text = text.Remove(text.Length - 1);
+            }
+
+            return text;
         }
 
         private static DateTime StartOfWeek(DateTime dt, DayOfWeek startOfWeek)
