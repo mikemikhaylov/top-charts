@@ -31,6 +31,11 @@ namespace TopCharts.Host
         private static void ConfigureServices(IServiceCollection services)
         {
             var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            if (string.IsNullOrWhiteSpace(env))
+            {
+                env = "Production";
+            }
+            Console.WriteLine("Running with env " + env);
             var builder = new ConfigurationBuilder()
                 .AddJsonFile($"appsettings.json", true, true)
                 .AddJsonFile($"appsettings.{env}.json", true, true)
