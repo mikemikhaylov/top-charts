@@ -19,18 +19,20 @@ namespace TopCharts.Domain.Services
         private readonly IItemRepository _itemRepository;
         private readonly DataLoader _dataLoader;
         private readonly DigestPoster _digestPoster;
+        private readonly TelegraphApi _telegraphApi;
 
         private readonly PostingOptions _config;
 
         public PostingService(PostingOptions config, IKeyValueRepository keyValueRepository,
             IItemRepository itemRepository, 
-            DataLoader dataLoader, DigestPoster digestPoster)
+            DataLoader dataLoader, DigestPoster digestPoster, TelegraphApi telegraphApi)
         {
             _config = config;
             _keyValueRepository = keyValueRepository;
             _itemRepository = itemRepository;
             _dataLoader = dataLoader;
             _digestPoster = digestPoster;
+            _telegraphApi = telegraphApi;
         }
 
         public async Task ProcessAsync(CancellationToken cancellationToken)
