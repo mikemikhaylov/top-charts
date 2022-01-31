@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using HtmlAgilityPack;
 using Kvyk.Telegraph.Models;
 using Markdig;
+using TopCharts.DataAccess.Abstractions;
 using TopCharts.DataAccess.Api;
 using TopCharts.Domain.Model;
 using TopCharts.Domain.Model.Api;
@@ -21,10 +22,11 @@ namespace TopCharts.Domain.Services
         private readonly DigestBuilder _digestBuilder;
         private readonly TelegraphApi _telegraphApi;
         private readonly TelegramPoster _telegramPoster;
+        private readonly IKeyValueRepository _keyValueRepository;
         private static readonly CultureInfo Russian = new CultureInfo("ru-RU");
 
         public DigestPoster(PostingOptions postingOptions, DigestBuilder digestBuilder, TelegraphApi telegraphApi,
-            TelegramPoster telegramPoster)
+            TelegramPoster telegramPoster, IKeyValueRepository keyValueRepository)
         {
             _postingOptions = postingOptions;
             if (_postingOptions.Site != Site.Vc)
@@ -35,6 +37,7 @@ namespace TopCharts.Domain.Services
             _digestBuilder = digestBuilder;
             _telegraphApi = telegraphApi;
             _telegramPoster = telegramPoster;
+            _keyValueRepository = keyValueRepository;
         }
 
         public async Task PostWeek(DateTime dateTime, CancellationToken cancellationToken)
@@ -60,32 +63,37 @@ namespace TopCharts.Domain.Services
             var linksByDigest = new Dictionary<SubSiteType, DigestLinks>();
             foreach (var digest in digests)
             {
-                var links = new DigestLinks
+                var links = await GetDigestLinks(from, to, digest.SubSiteType, cancellationToken);
+                if (links == null)
                 {
-                    ByBookmarks = await _telegraphApi.CreatePageAsync(
-                        $"ТОП-{digest.TopSize} {digest.Name} — {period} — по закладкам", cancellationToken),
-                    ByLikes = await _telegraphApi.CreatePageAsync(
-                        $"ТОП-{digest.TopSize} {digest.Name} — {period} — по лайкам", cancellationToken),
-                    ByComments = await _telegraphApi.CreatePageAsync(
-                        $"ТОП-{digest.TopSize} {digest.Name} — {period} — по комментариям", cancellationToken),
-                    ByViews = await _telegraphApi.CreatePageAsync(
-                        $"ТОП-{digest.TopSize} {digest.Name} — {period} — по просмотрам", cancellationToken),
-                };
+                    links = new DigestLinks
+                    {
+                        ByBookmarks = await _telegraphApi.CreatePageAsync(
+                            $"ТОП-{digest.TopSize} {digest.Name} — {period} — по закладкам", cancellationToken),
+                        ByLikes = await _telegraphApi.CreatePageAsync(
+                            $"ТОП-{digest.TopSize} {digest.Name} — {period} — по лайкам", cancellationToken),
+                        ByComments = await _telegraphApi.CreatePageAsync(
+                            $"ТОП-{digest.TopSize} {digest.Name} — {period} — по комментариям", cancellationToken),
+                        ByViews = await _telegraphApi.CreatePageAsync(
+                            $"ТОП-{digest.TopSize} {digest.Name} — {period} — по просмотрам", cancellationToken),
+                    };
+                    await SaveDigestLinks(from, to, digest.SubSiteType, links, cancellationToken);
+                }
                 linksByDigest[digest.SubSiteType] = links;
             }
 
             var mainLink =
                 await _telegraphApi.CreatePageAsync($"{title} {period}",
                     cancellationToken);
-            // await EditMainLink(mailLink, digests, linksByDigest, cancellationToken);
-            // foreach (var digest in digests)
-            // {
-            //     var links = linksByDigest[digest.SubSiteType];
-            //     await EditDigestLink(links.ByLikes, mailLink, links, digest.ByLikes, cancellationToken);
-            //     await EditDigestLink(links.ByBookmarks, mailLink, links, digest.ByBookmarks, cancellationToken);
-            //     await EditDigestLink(links.ByComments, mailLink, links, digest.ByComments, cancellationToken);
-            //     await EditDigestLink(links.ByViews, mailLink, links, digest.ByViews, cancellationToken);
-            // }
+            await EditMainLink(mainLink, digests, linksByDigest, cancellationToken);
+            foreach (var digest in digests)
+            {
+                var links = linksByDigest[digest.SubSiteType];
+                await EditDigestLink(links.ByLikes, mainLink, links, digest.ByLikes, cancellationToken);
+                await EditDigestLink(links.ByBookmarks, mainLink, links, digest.ByBookmarks, cancellationToken);
+                await EditDigestLink(links.ByComments, mainLink, links, digest.ByComments, cancellationToken);
+                await EditDigestLink(links.ByViews, mainLink, links, digest.ByViews, cancellationToken);
+            }
 
             var telegramContent = $"*{EscapeMarkup($"{title} {period}")}*";
             var allSite = digests.First(x => x.SubSiteType == SubSiteType.All);
@@ -111,6 +119,30 @@ namespace TopCharts.Domain.Services
             telegramContent +=
                 $"\n\n*[{EscapeMarkup("Полный список подсайтов")}]({EscapeMarkup(mainLink)})*";
             await _telegramPoster.Post(telegramContent, cancellationToken);
+        }
+
+        private async  Task<DigestLinks> GetDigestLinks(DateTime from, DateTime to, SubSiteType subSiteType,
+            CancellationToken cancellationToken)
+        {
+            var key = GetDigestLinkKey(from, to, subSiteType);
+            var value = await _keyValueRepository.GetAsync(_postingOptions.Site, key, cancellationToken);
+            if (value == null)
+            {
+                return null;
+            }
+            return JsonSerializer.Deserialize<DigestLinks>(value);
+        }
+        private async  Task SaveDigestLinks(DateTime from, DateTime to, SubSiteType subSiteType, DigestLinks digestLinks,
+            CancellationToken cancellationToken)
+        {
+            var key = GetDigestLinkKey(from, to, subSiteType);
+            var value = JsonSerializer.Serialize(digestLinks);
+            await _keyValueRepository.SetAsync(_postingOptions.Site, key, value, cancellationToken);
+        }
+
+        private static string GetDigestLinkKey(DateTime from, DateTime to, SubSiteType subSiteType)
+        {
+            return $"links {from.ToString("d", Russian)} {to.ToString("d", Russian)} {subSiteType}";
         }
 
         private string EscapeMarkup(string text)
@@ -219,7 +251,6 @@ namespace TopCharts.Domain.Services
             public string ByComments { get; set; }
             public string ByBookmarks { get; set; }
             public string ByViews { get; set; }
-            public string ByReposts { get; set; }
         }
     }
 }

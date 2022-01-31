@@ -41,7 +41,8 @@ namespace TopCharts.DataAccess.Api
         public async Task<string> CreatePageAsync(string title, CancellationToken cancellationToken)
         {
             Console.WriteLine("Creating page: " + title);
-            return "https://telegra.ph/For-future-use-01-30-2";
+            //return "https://telegra.ph/For-future-use-01-30-2";
+            await Task.Delay(GetTimeout(), cancellationToken);
             var nodes = new List<Node>
             {
                 Node.P("Hello, World!"),
@@ -58,6 +59,7 @@ namespace TopCharts.DataAccess.Api
         public async Task<string> EditPageAsync(string url, List<Node> nodes, CancellationToken cancellationToken)
         {
             Console.WriteLine("Editing page: " + url);
+            await Task.Delay(GetTimeout(), cancellationToken);
             var page = await _telegraphClient.GetPage(url);
             page = await _telegraphClient.EditPage(
                 url,
@@ -67,6 +69,14 @@ namespace TopCharts.DataAccess.Api
                 page.AuthorUrl
             );
             return page.Url;
+        }
+
+        private static Random rnd = new Random();
+        private TimeSpan GetTimeout()
+        {
+            var t = TimeSpan.FromSeconds(rnd.Next(10, 30));
+            Console.WriteLine($"Telegraph timeout {t}");
+            return t;
         }
     }
 }
