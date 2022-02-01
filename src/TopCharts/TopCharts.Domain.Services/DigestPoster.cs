@@ -208,10 +208,17 @@ namespace TopCharts.Domain.Services
                 }
 
                 liContent.Add(
-                    $"\n\n👍 {x.Data.Likes.Summ} | 👁 {x.Data.HitsCount} | 🔖 {x.Data.Counters.Favorites} | 💬 {x.Data.Counters.Comments}\n");
+                    $"\n\n👍 {x.Data.Likes.Summ} | 👁 {FormatHitCount(x.Data.HitsCount)} | 🔖 {x.Data.Counters.Favorites} | 💬 {x.Data.Counters.Comments}\n");
                 return Node.Li(liContent);
             })));
             await _telegraphApi.EditPageAsync(url, nodes, cancellationToken);
+        }
+
+        private string FormatHitCount(int hitCount)
+        {
+            var nfi = (NumberFormatInfo)Russian.NumberFormat.Clone();
+            nfi.NumberGroupSeparator = " ";
+            return hitCount.ToString("N0", nfi);
         }
 
         private async Task EditMainLink(string url, Digest[] digests,

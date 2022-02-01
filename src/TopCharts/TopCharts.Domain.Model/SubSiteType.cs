@@ -37,5 +37,6 @@ namespace TopCharts.Domain.Model
         Education = 371372,
         GrowthCases = 393615,
         Ml = 332941,
+        Promo = 199134,
     }
 }
