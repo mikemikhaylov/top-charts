@@ -134,6 +134,8 @@ namespace TopCharts.Domain.Services
             }
             telegramContent +=
                 $"\n\n*[{EscapeMarkup("Полный список подсайтов")}]({EscapeMarkup(mainLink)})*";
+            telegramContent +=
+                $"\n\n{EscapeMarkup("@vctopcharts")}";
             await _telegramPoster.Post(telegramContent, cancellationToken);
         }
 

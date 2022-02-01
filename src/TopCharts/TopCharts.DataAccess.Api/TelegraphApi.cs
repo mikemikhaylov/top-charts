@@ -70,10 +70,10 @@ namespace TopCharts.DataAccess.Api
             );
         }
 
-        private static Random rnd = new Random();
+        private static readonly Random Rnd = new Random();
         private TimeSpan GetTimeout()
         {
-            var t = TimeSpan.FromSeconds(rnd.Next(10, 30));
+            var t = TimeSpan.FromSeconds(Rnd.Next(30, 40));
             Console.WriteLine($"Telegraph timeout {t}");
             return t;
         }
