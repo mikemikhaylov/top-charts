@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
@@ -23,7 +22,8 @@ namespace TopCharts.Domain.Services
         private readonly TelegraphApi _telegraphApi;
         private readonly TelegramPoster _telegramPoster;
         private readonly IKeyValueRepository _keyValueRepository;
-        private static readonly CultureInfo Russian = new CultureInfo("ru-RU");
+        private static readonly CultureInfo Russian = new("ru-RU");
+
         public DigestPoster(PostingOptions postingOptions, DigestBuilder digestBuilder, TelegraphApi telegraphApi,
             TelegramPoster telegramPoster, IKeyValueRepository keyValueRepository)
         {
@@ -45,25 +45,41 @@ namespace TopCharts.Domain.Services
             int diff = (7 + (dt.DayOfWeek - DayOfWeek.Monday)) % 7;
             return dt.AddDays(-1 * diff).Date;
         }
-        
+
         public DateTime GetPrevMonthBeginning(DateTime dt)
         {
             var firstDayOfMonth = new DateTime(dt.Year, dt.Month, 1);
             return firstDayOfMonth.AddMonths(-1);
         }
-        
+
         public async Task PostWeek(DateTime dateTime, CancellationToken cancellationToken)
         {
             var from = GetPrevWeekBeginning(dateTime);
             var to = from.AddDays(6);
-            await PostPeriod("Лучшие статьи недели", $"{from.ToString("d", Russian)} – {to.ToString("d", Russian)}",
+            var fromMonth = Russian.DateTimeFormat.MonthGenitiveNames[from.Month - 1];
+            string period;
+            if (from.Year != to.Year)
+            {
+                period = $"{from.ToString("M", Russian)} {from:yyyy} – {to.ToString("M", Russian)} {to:yyyy}";
+            }
+            else if (from.Month == to.Month)
+            {
+                period = $"{from.Day}–{to.Day} {fromMonth} {from:yyyy}";
+            }
+            else
+            {
+                period = $"{from.ToString("M", Russian)} – {to.ToString("M", Russian)} {from:yyyy}";
+            }
+
+            await PostPeriod("Лучшие статьи недели", period,
                 from, to.AddDays(1), cancellationToken);
         }
 
         public async Task PostMonth(DateTime dateTime, CancellationToken cancellationToken)
         {
             var from = GetPrevMonthBeginning(dateTime);
-            await PostPeriod("Лучшие статьи за", $"{from.ToString("MMMM", Russian)} {from.Year}", from, from.AddMonths(1),
+            await PostPeriod("Лучшие статьи за", $"{from.ToString("MMMM", Russian)} {from.Year}", from,
+                from.AddMonths(1),
                 cancellationToken);
         }
 
@@ -76,6 +92,7 @@ namespace TopCharts.Domain.Services
                 Console.WriteLine($"Period {from} {to} is empty");
                 return;
             }
+
             var linksByDigest = new Dictionary<SubSiteType, DigestLinks>();
             foreach (var digest in digests)
             {
@@ -95,6 +112,7 @@ namespace TopCharts.Domain.Services
                     };
                     await SaveDigestLinks(from, to, digest.SubSiteType, links, cancellationToken);
                 }
+
                 linksByDigest[digest.SubSiteType] = links;
             }
 
@@ -119,7 +137,7 @@ namespace TopCharts.Domain.Services
             if (tribunaSite != null)
             {
                 telegramContent +=
-                    $"\n\n🔥*[{EscapeMarkup(tribunaSite.Name)}]({EscapeMarkup(linksByDigest[tribunaSite.SubSiteType].ByLikes)})* {EscapeMarkup("(поддержим тех, кто запускает новые продукты)")}";
+                    $"\n\n🔥*[{EscapeMarkup(tribunaSite.Name)}]({EscapeMarkup(linksByDigest[tribunaSite.SubSiteType].ByLikes)})*";
             }
 
             const int podsitesTopCount = 10;
@@ -132,6 +150,7 @@ namespace TopCharts.Domain.Services
                 telegramContent +=
                     $"\n[{EscapeMarkup($"{i++}. {digest.Name}")}]({EscapeMarkup(linksByDigest[digest.SubSiteType].ByLikes)})";
             }
+
             telegramContent +=
                 $"\n\n*[{EscapeMarkup("Полный список подсайтов")}]({EscapeMarkup(mainLink)})*";
             telegramContent +=
@@ -139,7 +158,7 @@ namespace TopCharts.Domain.Services
             await _telegramPoster.Post(telegramContent, cancellationToken);
         }
 
-        private async  Task<DigestLinks> GetDigestLinks(DateTime from, DateTime to, SubSiteType subSiteType,
+        private async Task<DigestLinks> GetDigestLinks(DateTime from, DateTime to, SubSiteType subSiteType,
             CancellationToken cancellationToken)
         {
             var key = GetDigestLinkKey(from, to, subSiteType);
@@ -148,9 +167,11 @@ namespace TopCharts.Domain.Services
             {
                 return null;
             }
+
             return JsonSerializer.Deserialize<DigestLinks>(value);
         }
-        private async  Task SaveDigestLinks(DateTime from, DateTime to, SubSiteType subSiteType, DigestLinks digestLinks,
+
+        private async Task SaveDigestLinks(DateTime from, DateTime to, SubSiteType subSiteType, DigestLinks digestLinks,
             CancellationToken cancellationToken)
         {
             var key = GetDigestLinkKey(from, to, subSiteType);
@@ -198,6 +219,7 @@ namespace TopCharts.Domain.Services
                 {
                     linkText = linkHref;
                 }
+
                 var liContent = new List<Node>
                 {
                     Node.A(linkHref, linkText),
@@ -216,7 +238,7 @@ namespace TopCharts.Domain.Services
 
         private string FormatHitCount(int hitCount)
         {
-            var nfi = (NumberFormatInfo)Russian.NumberFormat.Clone();
+            var nfi = (NumberFormatInfo) Russian.NumberFormat.Clone();
             nfi.NumberGroupSeparator = " ";
             return hitCount.ToString("N0", nfi);
         }
