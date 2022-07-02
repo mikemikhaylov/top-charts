@@ -68,7 +68,7 @@ namespace TopCharts.Domain.Services
                 Console.WriteLine("Week already posted");
                 return;
             }
-            await _dataLoader.LoadToDateAsync(_config.Site, null, loadFrom, cancellationToken);
+            await _dataLoader.LoadToDateAsync(_config.Site, null, loadFrom, false, cancellationToken);
             await _digestPoster.PostWeek(now, cancellationToken);
             await _keyValueRepository.SetAsync(_config.Site, weekKey, "done", cancellationToken);
         }
@@ -83,7 +83,7 @@ namespace TopCharts.Domain.Services
                 Console.WriteLine("Month already posted");
                 return;
             }
-            await _dataLoader.LoadToDateAsync(_config.Site, null, loadFrom, cancellationToken);
+            await _dataLoader.LoadToDateAsync(_config.Site, null, loadFrom, true, cancellationToken);
             await _digestPoster.PostMonth(now, cancellationToken);
             await _keyValueRepository.SetAsync(_config.Site, monthKey, "done", cancellationToken);
         }
@@ -92,7 +92,7 @@ namespace TopCharts.Domain.Services
             var nowNextWeekBeginning = _digestPoster.GetPrevWeekBeginning(DateTime.UtcNow.AddHours(3)).AddDays(14);
             var currentNow = _config.InitialDate;
             var loadFrom = _digestPoster.GetPrevMonthBeginning(currentNow);
-            await _dataLoader.LoadToDateAsync(_config.Site, InitialDownloadKey, loadFrom, cancellationToken);
+            await _dataLoader.LoadToDateAsync(_config.Site, InitialDownloadKey, loadFrom, false, cancellationToken);
             while (true)
             {
                 await _digestPoster.PostWeek(currentNow, cancellationToken);

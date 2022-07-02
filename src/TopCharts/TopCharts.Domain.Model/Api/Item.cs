@@ -6,5 +6,6 @@ namespace TopCharts.Domain.Model.Api
         public Site Site { get; set; }
         public string Type { get; set; }
         public Data Data { get; set; }
+        public ExtraData ExtraData { get; set; }
     }
 }

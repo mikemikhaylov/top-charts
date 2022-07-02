@@ -21,7 +21,7 @@ namespace TopCharts.Domain.Services
             _itemRepository = itemRepository;
             _apiRequester = apiRequester;
         }
-        public async Task LoadToDateAsync(Site site, string cacheKey, DateTime toDate, CancellationToken cancellationToken)
+        public async Task LoadToDateAsync(Site site, string cacheKey, DateTime toDate, bool enrich, CancellationToken cancellationToken)
         {
             var initialDownloadValue =
                 string.IsNullOrWhiteSpace(cacheKey) ? null :
@@ -35,6 +35,12 @@ namespace TopCharts.Domain.Services
                 {
                     Console.WriteLine($"Saving article {item.Data.GetCreatedAt()} {item.Data.Title}");
                     CleanItem(site, item);
+                    if (enrich)
+                    {
+                        Console.WriteLine($"Enriching article {item.Data.Id}");
+                        await Task.Delay(200, cancellationToken);
+                        item.ExtraData = await _apiRequester.GetExtraData(item.Data.Id, cancellationToken);
+                    }
                     await _itemRepository.SaveAsync(item, cancellationToken);
                 }
                 timelineRequest = new TimelineRequest

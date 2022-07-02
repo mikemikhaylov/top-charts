@@ -7,5 +7,6 @@ namespace TopCharts.DataAccess.Abstractions
     public interface IApiRequester
     {
         Task<Response> GetTimelineAsync(TimelineRequest request, CancellationToken cancellationToken);
+        Task<ExtraData> GetExtraData(int id, CancellationToken cancellationToken);
     }
 }
