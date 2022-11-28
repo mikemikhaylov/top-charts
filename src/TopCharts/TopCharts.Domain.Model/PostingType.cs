@@ -5,5 +5,6 @@ namespace TopCharts.Domain.Model
         InitialDownload = 1,
         PrevWeek = 2,
         PrevMonth = 3,
+        PrevSeason = 4,
     }
 }

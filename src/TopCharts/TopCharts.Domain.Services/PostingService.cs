@@ -52,6 +52,11 @@ namespace TopCharts.Domain.Services
                 await PrevMonthDownload(cancellationToken);
                 return;
             }
+            if (_config.Type == PostingType.PrevSeason)
+            {
+                await PrevSeasonDownload(cancellationToken);
+                return;
+            }
             throw new System.NotImplementedException();
         }
 
@@ -87,6 +92,23 @@ namespace TopCharts.Domain.Services
             await _digestPoster.PostMonth(now, cancellationToken);
             await _keyValueRepository.SetAsync(_config.Site, monthKey, "done", cancellationToken);
         }
+        
+        private async Task PrevSeasonDownload(CancellationToken cancellationToken)
+        {
+            var now = DateTime.UtcNow.AddHours(3);
+            var loadFrom = _digestPoster.GetPrevSeasonBeginning(now);
+            var seasonKey = $"season={loadFrom.ToString("d", new CultureInfo("ru-RU"))}";
+            var seasonValue = await _keyValueRepository.GetAsync(_config.Site, seasonKey, cancellationToken);
+            if (seasonValue != null)
+            {
+                Console.WriteLine("Season already posted");
+                return;
+            }
+            await _dataLoader.LoadToDateAsync(_config.Site, null, loadFrom, true, cancellationToken);
+            await _digestPoster.PostSeason(now, cancellationToken);
+            await _keyValueRepository.SetAsync(_config.Site, seasonKey, "done", cancellationToken);
+        }
+        
         private async Task InitialDownload(CancellationToken cancellationToken)
         {
             var nowNextWeekBeginning = _digestPoster.GetPrevWeekBeginning(DateTime.UtcNow.AddHours(3)).AddDays(14);

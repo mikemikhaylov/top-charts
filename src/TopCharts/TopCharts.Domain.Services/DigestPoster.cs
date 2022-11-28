@@ -52,7 +52,7 @@ namespace TopCharts.Domain.Services
             return firstDayOfMonth.AddMonths(-1);
         }
         
-        public DateTime GetSeasonBeginning(DateTime dt)
+        public DateTime GetPrevSeasonBeginning(DateTime dt)
         {
             var subtractMonths = 0;
             switch (dt.Month)
@@ -126,6 +126,30 @@ namespace TopCharts.Domain.Services
             var from = GetPrevMonthBeginning(dateTime);
             await PostPeriod("Лучшие статьи за", $"{from.ToString("MMMM", Russian)} {from.Year}", from,
                 from.AddMonths(1),
+                cancellationToken);
+        }
+        
+        public async Task PostSeason(DateTime dateTime, CancellationToken cancellationToken)
+        {
+            var from = GetPrevSeasonBeginning(dateTime);
+            string season = string.Empty;
+            switch (from.Month)
+            {
+                case 12:
+                    season = $"Зимы {from.Year}-{from.Year + 1}";
+                    break;
+                case 2:
+                    season = $"Весны {from.Year}";
+                    break;
+                case 6:
+                    season = $"Лета {from.Year}";
+                    break;
+                case 9:
+                    season = $"Осени {from.Year}";
+                    break;
+            }
+            await PostPeriod("Лучшие статьи", season, from,
+                from.AddMonths(3),
                 cancellationToken);
         }
 
