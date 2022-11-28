@@ -51,6 +51,52 @@ namespace TopCharts.Domain.Services
             var firstDayOfMonth = new DateTime(dt.Year, dt.Month, 1);
             return firstDayOfMonth.AddMonths(-1);
         }
+        
+        public DateTime GetSeasonBeginning(DateTime dt)
+        {
+            var subtractMonths = 0;
+            switch (dt.Month)
+            {
+                case 1:
+                    subtractMonths = 1;
+                    break;
+                case 2:
+                    subtractMonths = 2;
+                    break;
+                case 3:
+                    subtractMonths = 0;
+                    break;
+                case 4:
+                    subtractMonths = 1;
+                    break;
+                case 5:
+                    subtractMonths = 2;
+                    break;
+                case 6:
+                    subtractMonths = 0;
+                    break;
+                case 7:
+                    subtractMonths = 1;
+                    break;
+                case 8:
+                    subtractMonths = 2;
+                    break;
+                case 9:
+                    subtractMonths = 0;
+                    break;
+                case 10:
+                    subtractMonths = 1;
+                    break;
+                case 11:
+                    subtractMonths = 2;
+                    break;
+                case 12:
+                    subtractMonths = 0;
+                    break;
+            }
+            var firstDayOfMonth = new DateTime(dt.Year, dt.Month, 1);
+            return firstDayOfMonth.AddMonths(-1 * subtractMonths);
+        }
 
         public async Task PostWeek(DateTime dateTime, CancellationToken cancellationToken)
         {
