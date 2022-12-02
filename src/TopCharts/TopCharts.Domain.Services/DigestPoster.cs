@@ -58,40 +58,40 @@ namespace TopCharts.Domain.Services
             switch (dt.Month)
             {
                 case 1:
-                    subtractMonths = 1;
+                    subtractMonths = 4;
                     break;
                 case 2:
-                    subtractMonths = 2;
+                    subtractMonths = 5;
                     break;
                 case 3:
-                    subtractMonths = 0;
+                    subtractMonths = 3;
                     break;
                 case 4:
-                    subtractMonths = 1;
+                    subtractMonths = 4;
                     break;
                 case 5:
-                    subtractMonths = 2;
+                    subtractMonths = 5;
                     break;
                 case 6:
-                    subtractMonths = 0;
+                    subtractMonths = 3;
                     break;
                 case 7:
-                    subtractMonths = 1;
+                    subtractMonths = 4;
                     break;
                 case 8:
-                    subtractMonths = 2;
+                    subtractMonths = 5;
                     break;
                 case 9:
-                    subtractMonths = 0;
+                    subtractMonths = 3;
                     break;
                 case 10:
-                    subtractMonths = 1;
+                    subtractMonths = 4;
                     break;
                 case 11:
-                    subtractMonths = 2;
+                    subtractMonths = 5;
                     break;
                 case 12:
-                    subtractMonths = 0;
+                    subtractMonths = 3;
                     break;
             }
             var firstDayOfMonth = new DateTime(dt.Year, dt.Month, 1);
