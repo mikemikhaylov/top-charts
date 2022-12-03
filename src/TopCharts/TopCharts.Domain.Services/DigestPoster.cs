@@ -136,16 +136,16 @@ namespace TopCharts.Domain.Services
             switch (from.Month)
             {
                 case 12:
-                    season = $"Зимы {from.Year}-{from.Year + 1}";
+                    season = $"Зима {from.Year}-{from.Year + 1}";
                     break;
                 case 2:
-                    season = $"Весны {from.Year}";
+                    season = $"Весна {from.Year}";
                     break;
                 case 6:
-                    season = $"Лета {from.Year}";
+                    season = $"Лето {from.Year}";
                     break;
                 case 9:
-                    season = $"Осени {from.Year}";
+                    season = $"Осень {from.Year}";
                     break;
             }
             await PostPeriod("Лучшие статьи", season, from,
