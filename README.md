@@ -1,6 +1,8 @@
 # top-charts
 Построение рейтинга лучших статей vc.ru: https://t.me/vctopcharts
 
+Документация к API: https://cmtt-ru.github.io/osnova-api/v2.1/swagger.html
+
 ### Build
 ```
 dotnet publish -c Release -r win-x64
