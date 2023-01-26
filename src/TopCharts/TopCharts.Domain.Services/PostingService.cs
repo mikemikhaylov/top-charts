@@ -104,7 +104,7 @@ namespace TopCharts.Domain.Services
                 Console.WriteLine("Season already posted");
                 return;
             }
-            await _dataLoader.LoadToDateAsync(_config.Site, null, loadFrom, true, cancellationToken);
+            await _dataLoader.LoadToDateAsync(_config.Site, null, loadFrom, false, cancellationToken);
             await _digestPoster.PostSeason(now, cancellationToken);
             await _keyValueRepository.SetAsync(_config.Site, seasonKey, "done", cancellationToken);
         }
