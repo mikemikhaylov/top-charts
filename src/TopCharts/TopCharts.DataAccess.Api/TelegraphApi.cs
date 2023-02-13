@@ -61,13 +61,22 @@ namespace TopCharts.DataAccess.Api
             Console.WriteLine("Editing page: " + url);
             await Task.Delay(GetTimeout(5, 10), cancellationToken);
             var page = await _telegraphClient.GetPage(url);
-            page = await _telegraphClient.EditPage(
-                url,
-                page.Title, 
-                nodes, 
-                page.AuthorName,
-                page.AuthorUrl
-            );
+            for(var i = 0; i < 10; i++) {
+              try {
+               page = await _telegraphClient.EditPage(
+                            url,
+                            page.Title,
+                            nodes,
+                            page.AuthorName,
+                            page.AuthorUrl
+                        );
+                 break;
+               }
+               catch(Exception e) {
+               Console.WriteLine("Editing error: " + e.ToString());
+               await Task.Delay(GetTimeout(60, 120), cancellationToken);
+               }
+            }
         }
 
         private static readonly Random Rnd = new Random();
