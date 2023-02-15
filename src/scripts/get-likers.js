@@ -8,6 +8,6 @@ fetch(`https://vc.ru/vote/get_likers?id=${publication_id}&type=1&mode=raw`)
         Object.keys(likers)
             .sort()
             .filter(key => likers[key].sign > 0)
-            .forEach(key => result +=`${key};${likers[key].user_name};${likers[key].user_name}\n`);
+            .forEach(key => result +=`${key};${likers[key].user_name};${likers[key].user_url}\n`);
         console.log(result);
     });
