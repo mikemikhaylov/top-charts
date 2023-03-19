@@ -1,5 +1,5 @@
 
-const publication_id = 604957;
+const publication_id = 604957;//replace with your publication id
 fetch(`https://vc.ru/vote/get_likers?id=${publication_id}&type=1&mode=raw`)
     .then((response) => response.json())
     .then((data) => {
